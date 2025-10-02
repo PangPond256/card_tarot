@@ -1,3 +1,7 @@
+/* =========================================================
+   Modal + Tarot (Mobile Friendly) — app.js
+   ========================================================= */
+
 /* ---------- เปิด/ปิด Modal (ใช้หลายอันร่วมกัน) ---------- */
 const overlay = document.getElementById('overlay');
 let activeModal = null, lastFocused = null;
@@ -6,40 +10,94 @@ function openModal(id){
   const m = document.getElementById(id);
   if(!m) return;
   lastFocused = document.activeElement;
-  overlay.hidden = false; m.hidden = false;
-  requestAnimationFrame(()=>{ overlay.classList.add('show'); m.classList.add('show'); });
+
+  // ล็อกสกรอลล์พื้นหลัง (สำคัญบนมือถือ)
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+
+  overlay.hidden = false;
+  m.hidden = false;
+  requestAnimationFrame(()=>{
+    overlay.classList.add('show');
+    m.classList.add('show');
+  });
   activeModal = m;
   m.querySelector('.modal__panel')?.focus();
+
   document.addEventListener('keydown', onEsc);
   document.addEventListener('focus', trap, true);
 }
+
 function closeModal(){
   if(!activeModal) return;
-  overlay.classList.remove('show'); activeModal.classList.remove('show');
-  setTimeout(()=>{ overlay.hidden = true; activeModal.hidden = true; lastFocused?.focus(); activeModal = null; }, 200);
+  overlay.classList.remove('show');
+  activeModal.classList.remove('show');
+
+  setTimeout(()=>{
+    overlay.hidden = true;
+    activeModal.hidden = true;
+
+    // ปลดล็อกสกรอลล์พื้นหลัง
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+
+    lastFocused?.focus();
+    activeModal = null;
+  }, 200);
+
   document.removeEventListener('keydown', onEsc);
   document.removeEventListener('focus', trap, true);
 }
-function onEsc(e){ if(e.key==='Escape') closeModal(); }
+
+function onEsc(e){ if(e.key === 'Escape') closeModal(); }
 function trap(e){
   if(!activeModal || activeModal.hidden) return;
-  if(!activeModal.contains(e.target)){ e.stopPropagation(); activeModal.querySelector('.modal__panel')?.focus(); }
+  if(!activeModal.contains(e.target)){
+    e.stopPropagation();
+    activeModal.querySelector('.modal__panel')?.focus();
+  }
 }
-document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openModal(b.dataset.open)));
-document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModal));
-overlay.addEventListener('click', closeModal);
-document.addEventListener('click', e=>{ if(e.target===activeModal) closeModal(); });
 
-/* ---------- ส่งฟอร์มลงทะเบียน (เดโม) ---------- */
-document.getElementById('regForm')?.addEventListener('submit', e=>{
-  e.preventDefault();
-  const d = Object.fromEntries(new FormData(e.target).entries());
-  alert(`ลงทะเบียนสำเร็จ\nชื่อ: ${d.name}\nอีเมล: ${d.email}`);
-  closeModal(); e.target.reset();
+/* ---------- รอ DOM โหลดเสร็จแล้วค่อยผูกปุ่ม/ฟอร์ม ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  // ปุ่มเปิด/ปิดโมดัล
+  document.querySelectorAll('[data-open]').forEach(b =>
+    b.addEventListener('click', ()=>openModal(b.dataset.open))
+  );
+  document.querySelectorAll('[data-close]').forEach(b =>
+    b.addEventListener('click', closeModal)
+  );
+  overlay.addEventListener('click', closeModal);
+  document.addEventListener('click', e => { if(e.target === activeModal) closeModal(); });
+
+// ฟอร์มลงทะเบียนสินค้า
+document.addEventListener('DOMContentLoaded', () => {
+  const productForm = document.getElementById('productForm');
+  if (productForm) {
+    productForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const formData = new FormData(productForm);
+
+      const name = formData.get('productName');
+      const price = formData.get('price');
+      const image = formData.get('productImage');
+
+      alert(`บันทึกสินค้าแล้ว:\nชื่อ: ${name}\nราคา: ${price} บาท\nไฟล์รูป: ${image.name}`);
+
+      // TODO: เก็บสินค้าใน array / localStorage ได้ตามต้องการ
+      productForm.reset();
+      closeModal();
+    });
+  }
 });
 
-/* ---------- ชุดไพ่ทาโร่ 78 ใบ ---------- */
-/* ตั้งชื่อรูปไฟล์ตามคีย์ img (เก็บในโฟลเดอร์ tarot/) */
+
+  // ปุ่มสุ่มไพ่ / คัดลอกคำทำนาย
+  document.getElementById('drawCard')?.addEventListener('click', drawRandomCard);
+  document.getElementById('copyReading')?.addEventListener('click', copyReading);
+});
+
+/* ---------- ชุดไพ่ทาโร่ 78 ใบ (ไฟล์ภาพอยู่ในโฟลเดอร์ tarot/) ---------- */
 const TAROT = [
   // ===== Major Arcana (0–21) =====
   {img:'major_00_fool.webp',        name:'The Fool (0)',         up:'การเริ่มต้นใหม่ โอกาส กล้าลองสิ่งใหม่',                                  rev:'ความหุนหันพลันแล่น ขาดการวางแผน เสี่ยงเกินไป'},
@@ -64,7 +122,8 @@ const TAROT = [
   {img:'major_19_sun.webp',         name:'The Sun (XIX)',        up:'ความสำเร็จ ความสุข ความชัดเจน ออร่าเปล่ง',                                 rev:'ดีแต่ช้าหรือชั่วคราว รู้สึกโดดเดี่ยว แม้ทุกอย่างดูดี'},
   {img:'major_20_judgement.webp',   name:'Judgement (XX)',       up:'ตื่นรู้ การประเมินใหม่ การให้อภัย/ชุบชีวิต',                               rev:'ติดอดีต วิจารณ์ตนเองแรง เกรงการตัดสิน'},
   {img:'major_21_world.webp',       name:'The World (XXI)',      up:'บทสรุปสมบูรณ์ การบรรลุเป้าหมาย วงจรที่ครบถ้วน',                          rev:'ค้างคา ปิดโปรเจกต์ไม่ลง วนซ้ำรอบเดิม'},
-  // ===== Minor: Wands (Ace–King) =====
+
+  // ===== Wands =====
   {img:'wands_ace.webp', name:'Ace of Wands', up:'ประกายไอเดียใหม่ แรงบันดาลใจ จุดเริ่มต้นสร้างสรรค์', rev:'แรงบันดาลใจหาย ผัดวันประกันพรุ่ง'},
   {img:'wands_2.webp',   name:'Two of Wands', up:'วางแผนมองไกล เลือกเส้นทางใหม่', rev:'ลังเล กลัวออกจากคอมฟอร์ตโซน'},
   {img:'wands_3.webp',   name:'Three of Wands', up:'ขยายผล เฝ้ารอผลลัพธ์ เดินทาง/โอกาสกว้างขึ้น', rev:'แผนชะงัก ต้องปรับทิศ'},
@@ -79,6 +138,7 @@ const TAROT = [
   {img:'wands_knight.webp',name:'Knight of Wands', up:'ลงมืออย่างกล้าได้กล้าเสีย การผจญภัย', rev:'หุนหันผลีผลาม เปลี่ยนใจเร็ว'},
   {img:'wands_queen.webp',name:'Queen of Wands', up:'เสน่ห์ มั่นใจ ภาวะผู้นำที่อบอุ่น', rev:'ขาดความมั่นใจ อิจฉา/ควบคุม'},
   {img:'wands_king.webp', name:'King of Wands', up:'วิสัยทัศน์ กล้าเสี่ยง ผู้ชี้นำ', rev:'เผด็จการ ดันทุรัง ความเสี่ยงเกินไป'},
+
   // ===== Cups =====
   {img:'cups_ace.webp', name:'Ace of Cups', up:'เริ่มอารมณ์/ความรักใหม่ หัวใจเปิดรับ', rev:'อารมณ์อั้น ไม่กล้าเปิดใจ'},
   {img:'cups_2.webp',   name:'Two of Cups', up:'พันธมิตร/รักที่สมดุล การจับมือ', rev:'ไม่ลงรอย เข้าใจผิด'},
@@ -94,6 +154,7 @@ const TAROT = [
   {img:'cups_knight.webp',name:'Knight of Cups', up:'โรแมนติก เสน่ห์ ข้อเสนอที่งดงาม', rev:'อ่อนไหวเกินไป เปลี่ยนอารมณ์เร็ว'},
   {img:'cups_queen.webp',name:'Queen of Cups', up:'เข้าอกเข้าใจ ลึกซึ้ง เยียวยา', rev:'อ่อนไหวเกินดูแลตัวเองน้อย'},
   {img:'cups_king.webp', name:'King of Cups', up:'สงบนิ่ง ครองอารมณ์เก่ง ผู้ไกล่เกลี่ย', rev:'กดอารมณ์/เฉยชา เก็บกด'},
+
   // ===== Swords =====
   {img:'swords_ace.webp', name:'Ace of Swords', up:'ความจริง/ไอเดียคมชัด ตัดสินใจชัด', rev:'สับสน ข่าวลือ ความจริงบิดเบือน'},
   {img:'swords_2.webp',   name:'Two of Swords', up:'ชั่งใจ ปิดใจชั่วคราว รอข้อมูลเพิ่ม', rev:'ปลดบังตา เลือกทาง'},
@@ -109,6 +170,7 @@ const TAROT = [
   {img:'swords_knight.webp',name:'Knight of Swords', up:'พุ่งไปสู่เป้าหมาย ตรงไปตรงมา', rev:'หุนหัน/ทื่อเกิน ขาดไหวพริบ'},
   {img:'swords_queen.webp',name:'Queen of Swords', up:'เหตุผลคมชัด พูดตรง ยุติธรรม', rev:'เย็นชา ตัดสินแรง'},
   {img:'swords_king.webp', name:'King of Swords', up:'สติปัญญาเป็นผู้นำ กฎหมาย/กฎเกณฑ์', rev:'เข้มงวดเกิน โต้เถียงเก่ง'},
+
   // ===== Pentacles =====
   {img:'pentacles_ace.webp', name:'Ace of Pentacles', up:'โอกาสทางการเงิน/รูปธรรมใหม่ ๆ', rev:'พลาดโอกาส ใช้ทรัพยากรไม่คุ้ม'},
   {img:'pentacles_2.webp',   name:'Two of Pentacles', up:'บาลานซ์งาน/เงินหลายเรื่อง จัดเวลา', rev:'โอเวอร์โหลด จัดการไม่ลง'},
@@ -128,25 +190,22 @@ const TAROT = [
 
 /* ---------- สุ่มไพ่ + ทิศทาง + แสดงผล ---------- */
 const cardView = document.getElementById('cardView');
-document.getElementById('drawCard').addEventListener('click', drawRandomCard);
-document.getElementById('copyReading').addEventListener('click', copyReading);
 
 function drawRandomCard(){
   const card = TAROT[Math.floor(Math.random()*TAROT.length)];
   const reversed = Math.random() < 0.5; // 50% กลับหัว
   const imgPath = `tarot/${card.img}`;
 
-  // HTML แสดงผล
   cardView.innerHTML = `
     <div class="card-title">${card.name}</div>
     <div class="card-orient">${reversed ? 'กลับหัว (Reversed)' : 'ปกติ (Upright)'}</div>
-    <img class="card-img" src="${imgPath}" alt="${card.name}" onerror="this.replaceWith(createPlaceholder('${card.name}'));">
+    <img class="card-img" src="${imgPath}" alt="${card.name}"
+         onerror="this.replaceWith(createPlaceholder('${card.name}'));">
     <div class="reading">
       <strong>คำทำนาย:</strong>
       <div id="reading-text">${reversed ? card.rev : card.up}</div>
     </div>
   `;
-  // หมายเหตุ: onerror เรียกฟังก์ชัน global เพื่อแทนที่ด้วย placeholder ถ้ารูปไม่พบ
 }
 
 // ฟังก์ชัน placeholder เมื่อไม่มีรูป
@@ -155,18 +214,21 @@ window.createPlaceholder = function(title){
   p.className = 'placeholder';
   p.textContent = `ไม่มีรูป: ${title}`;
   return p;
-}
+};
 
 function copyReading(){
   const el = document.getElementById('reading-text');
   if(!el) return;
   const text = el.innerText;
+
+  // HTTPS/localhost ถึงจะใช้ clipboard API ได้แน่นอน
   navigator.clipboard?.writeText(text).then(()=>{
     alert('คัดลอกคำทำนายแล้ว');
   }).catch(()=>{
-    // fallback
+    // fallback สำหรับกรณีเปิดไฟล์แบบ file://
     const ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); alert('คัดลอกคำทำนายแล้ว'); }finally{ ta.remove(); }
+    try { document.execCommand('copy'); alert('คัดลอกคำทำนายแล้ว'); }
+    finally { ta.remove(); }
   });
 }
