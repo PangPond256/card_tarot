@@ -1,10 +1,7 @@
 :root {
     --red: #9a514a;
-    /* header */
     --cream: #ede3ca;
-    /* sidebar */
     --green: #a39a6d;
-    /* page bg */
     --button: #d7866b;
     --text-dark: #3b2a28;
 
@@ -19,7 +16,7 @@
 }
 
 * {
-    box-sizing: border-box
+    box-sizing: border-box;
 }
 
 body {
@@ -37,7 +34,7 @@ body {
     background: var(--red);
     padding: 20px;
     text-align: center;
-    color: #fceaea
+    color: #fceaea;
 }
 
 .header h1 {
@@ -47,7 +44,7 @@ body {
 /* Layout */
 .layout {
     display: flex;
-    flex: 1
+    flex: 1;
 }
 
 .sidebar {
@@ -88,7 +85,7 @@ body {
     background: #f7f4e9;
     padding: 36px;
     min-width: 260px;
-    text-align: center
+    text-align: center;
 }
 
 .hint {
@@ -123,13 +120,13 @@ body {
 
 .btn:hover {
     background: #20283a;
-    border-color: #354055
+    border-color: #354055;
 }
 
 .btn.primary {
     background: var(--accent);
     color: #111;
-    border-color: transparent
+    border-color: transparent;
 }
 
 .btn.primary:hover {
@@ -146,11 +143,13 @@ body {
     pointer-events: none;
     transition: opacity var(--dur);
     z-index: 20;
+    overscroll-behavior: contain;
+    /* กัน bounce scroll */
 }
 
 .overlay.show {
     opacity: 1;
-    pointer-events: auto
+    pointer-events: auto;
 }
 
 .modal {
@@ -160,7 +159,7 @@ body {
     place-items: center;
     padding: 24px;
     pointer-events: none;
-    z-index: 21
+    z-index: 21;
 }
 
 .modal[hidden] {
@@ -178,12 +177,36 @@ body {
     transition: transform var(--dur), opacity var(--dur);
     pointer-events: auto;
     outline: none;
-    color: var(--text)
+    color: var(--text);
+
+    /* ✅ fix: ให้เลื่อนในมือถือได้ */
+    display: flex;
+    flex-direction: column;
+    max-height: 90svh;
+    overflow: hidden;
 }
 
 .modal.show .modal__panel {
     transform: translateY(0) scale(1);
-    opacity: 1
+    opacity: 1;
+}
+
+.modal__head,
+.modal__foot {
+    flex: 0 0 auto;
+}
+
+.modal__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700
 }
 
 .modal__head {
@@ -191,13 +214,7 @@ body {
     align-items: center;
     gap: 12px;
     padding: 16px 18px;
-    border-bottom: 1px solid var(--border)
-}
-
-.modal__title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700
+    border-bottom: 1px solid var(--border);
 }
 
 .modal__close {
@@ -210,7 +227,7 @@ body {
     border: 1px solid var(--border);
     background: #161a22;
     color: var(--text);
-    cursor: pointer
+    cursor: pointer;
 }
 
 .modal__close:hover {
@@ -218,23 +235,19 @@ body {
     border-color: #364055
 }
 
-.modal__body {
-    padding: 18px
-}
-
 .modal__foot {
     padding: 14px 18px;
     border-top: 1px solid var(--border);
     display: flex;
     gap: 10px;
-    justify-content: flex-end
+    justify-content: flex-end;
 }
 
 /* Forms */
 .field {
     display: grid;
     gap: 6px;
-    margin: 0 0 12px
+    margin: 0 0 12px;
 }
 
 .field span {
@@ -250,7 +263,7 @@ body {
     border-radius: 10px;
     border: 1px solid #2b3442;
     background: #121620;
-    color: var(--text)
+    color: var(--text);
 }
 
 /* Tarot card view */
@@ -259,13 +272,18 @@ body {
 }
 
 .card-img {
-    width: min(260px, 70vw);
+    width: 100%;
+    max-width: 260px;
     aspect-ratio: 3/5;
     object-fit: cover;
     border-radius: 12px;
     display: block;
     margin: 10px auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+
+    /* ✅ จำกัดความสูงในมือถือ */
+    max-height: 60svh;
+    object-fit: contain;
 }
 
 .card-title {
@@ -285,7 +303,7 @@ body {
     border: 1px solid #263041;
     border-radius: 10px;
     padding: 12px;
-    text-align: left
+    text-align: left;
 }
 
 .muted {
@@ -293,7 +311,8 @@ body {
 }
 
 .placeholder {
-    width: min(260px, 70vw);
+    width: 100%;
+    max-width: 260px;
     aspect-ratio: 3/5;
     display: grid;
     place-items: center;
@@ -302,47 +321,11 @@ body {
     border-radius: 12px;
     color: #a8b2c3;
     font-size: 13px;
-    border: 1px dashed #445066
+    border: 1px dashed #445066;
 }
 
 /* Focus ring */
 :where(button, .btn, input, select, textarea):focus-visible {
     outline: 2px solid var(--accent);
-    outline-offset: 2px
-}
-/* กล่องโมดัลจำกัดความสูง และให้เนื้อหาข้างในสกรอลล์ได้ */
-.modal__panel {
-    display: flex;
-    flex-direction: column;
-    max-height: 90svh;
-    /* สูงสุด 90% ของจอ (รองรับ iOS) */
-    overflow: hidden;
-}
-
-.modal__head,
-.modal__foot {
-    flex: 0 0 auto;
-}
-
-.modal__body {
-    flex: 1 1 auto;
-    min-height: 0;
-    /* สำคัญมากเพื่อให้ overflow ทำงานใน flex */
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    /* ลื่นบน iOS */
-}
-
-/* รูปไพ่ไม่ให้ดันโมดัลยาวเกิน */
-.card-img {
-    max-height: 60svh;
-    /* จำกัดความสูงรูป */
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-}
-
-/* กัน bounce scroll ไปโดนพื้นหลัง */
-.overlay {
-    overscroll-behavior: contain;
+    outline-offset: 2px;
 }
