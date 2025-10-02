@@ -11,7 +11,7 @@ function openModal(id){
   if(!m) return;
   lastFocused = document.activeElement;
 
-  // ล็อกสกรอลล์พื้นหลัง (สำคัญบนมือถือ)
+  // ล็อกสกรอลล์พื้นหลังเฉพาะตอนเปิดโมดัล
   document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
 
@@ -37,7 +37,7 @@ function closeModal(){
     overlay.hidden = true;
     activeModal.hidden = true;
 
-    // ปลดล็อกสกรอลล์พื้นหลัง
+    // ปลดล็อกสกรอลล์พื้นหลังเมื่อปิด
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
 
@@ -48,6 +48,7 @@ function closeModal(){
   document.removeEventListener('keydown', onEsc);
   document.removeEventListener('focus', trap, true);
 }
+
 
 function onEsc(e){ if(e.key === 'Escape') closeModal(); }
 function trap(e){
@@ -67,10 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-close]').forEach(b =>
     b.addEventListener('click', closeModal)
   );
-  overlay.addEventListener('click', closeModal);
-  document.addEventListener('click', e => { if(e.target === activeModal) closeModal(); });
-
-// ฟอร์มลงทะเบียนสินค้า
+  overlay.addEventListener('click', closeModal);// ฟอร์มลงทะเบียนสินค้า
 document.addEventListener('DOMContentLoaded', () => {
   const productForm = document.getElementById('productForm');
   if (productForm) {
@@ -91,6 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+  document.addEventListener('click', e => { if(e.target === activeModal) closeModal(); });
+
+  // ฟอร์มลงทะเบียน (เดโม)
+  document.getElementById('regForm')?.addEventListener('submit', e=>{
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target).entries());
+    alert(`ลงทะเบียนสำเร็จ\nชื่อ: ${d.name}\nอีเมล: ${d.email}`);
+    closeModal(); e.target.reset();
+  });
 
   // ปุ่มสุ่มไพ่ / คัดลอกคำทำนาย
   document.getElementById('drawCard')?.addEventListener('click', drawRandomCard);
